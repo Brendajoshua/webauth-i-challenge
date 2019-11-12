@@ -13,6 +13,7 @@ router.post('/register', (req, res) => {
 
     Users.add(user)
     .then(newUser => {
+        // delete newUser.password // deletes the password key from the new user object if it existsts
         res.status(201).json(newUser);
     })
     .catch(err => {
