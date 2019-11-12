@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 
-const users = require('./user-model');
+const Users = require('./user-model');
 const Protected = require('../middleware/protected');
 
 const router = express.Router();
@@ -11,41 +11,40 @@ router.post('/register', (req, res) => {
     const hash = bcrypt.hashSync(user.password, 8);
     user.password = hash;
 
-    users.add(user)
+    Users.add(user)
     .then(newUser => {
         res.status(201).json(newUser);
-    }).catch(err => {
+    })
+    .catch(err => {
         res.status(500).json({ message: 'fail to create user' });
     });
 });
 
 router.post('/login', (req, res) => {
     let { username, password } = req.body;
-    if (username && password) {
-        users.findBy({ username })
+    Users.findBy({ username })
         .first()
         .then(user => {
             if (user && bcrypt.compare(password, user.password)) {
-                res.status(200).json({ message: `welcome ${user.username}` });
+                req.session.username = user.username;
+                res.status(200).json({ message: `Welcome ${user.username}` });
             } else {
-                res.status(401).json({ message: 'authentication denied' });
+                res.status(401).json({ message: 'auhentication denied' });
             }
-        }).catch(err => {
+        })
+        .catch(err => {
             res.status(500).json(err);
         });
-    } else {
-        res.status(400).json({ message: 'please provide login credentials' });
-    }
 });
 
-router.get('/users', Protected, (req, res) => {
-    Users.find()
-    .then(users => {
-        res.status(200).json(users);
-    })
-    .catch(err => {
-        res.status(500).send(err);
-    });
+router.get('/logout', (req, res) => {
+    if (req.session) {
+        req.session.destroy(err => {
+            res.status(200).json({ message: 'you have logged out, bye!' });
+        })
+    } else {
+        res.status(200).json({ message: 'alredy logged out' });
+    }
 });
 
 module.exports = router;

@@ -5,6 +5,7 @@ const sessions = require('express-session');
 const KnexSessionStore = require('connect-session-knex')(sessions);
 
 const userRouter = require('./user/user-router');
+const restrictedRouter = require('./restricted/restricted-router');
 const knexConfig = require('./data/db-config');
 
 const server = express();
@@ -32,6 +33,7 @@ server.use(helmet());
 server.use(express.json());
 
 server.use('/api', userRouter);
+server.use('/api/restricted', restrictedRouter);
 
 server.get('/', (req, res) => {
     res.send('<h1>Authentication Server!</h1>');
